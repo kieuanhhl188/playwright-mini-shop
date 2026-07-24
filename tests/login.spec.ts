@@ -1,11 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'https://seminar-shop-login.onrender.com/';
-
 test.describe('Mini Shop — Login', () => {
   test('logs in successfully with valid credentials', async ({ page }) => {
     // Arrange: open the login page
-    await page.goto(BASE_URL);
+    await page.goto('/'); // Uses the configured baseURL
 
     // Act: enter valid credentials and submit
     await page.getByPlaceholder('standard_user').fill('standard_user');
@@ -25,7 +23,7 @@ test.describe('Mini Shop — Login', () => {
 
   test('fails to log in with invalid credentials', async ({ page }) => {
     // Arrange: open the login page
-    await page.goto(BASE_URL);
+    await page.goto('/'); // Uses the configured baseURL
 
     // Act: enter invalid credentials and submit
     await page.getByPlaceholder('standard_user').fill('invalid_user');

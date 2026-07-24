@@ -6,14 +6,12 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 
-const BASE_URL = 'https://seminar-shop-login.onrender.com/';
-
 /**
  * Logs in with the sample account and waits until the shop is rendered.
  * Uses only user-facing locators.
  */
 async function login(page: Page): Promise<void> {
-  await page.goto(BASE_URL);
+  await page.goto('/'); // Uses the configured baseURL
   await page.getByPlaceholder('standard_user').fill('standard_user');
   await page.getByTestId('password').fill('secret_sauce');
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
@@ -65,7 +63,7 @@ test.describe('Mini Shop — Add Product to Cart', () => {
 
   test('TC-15 Negative: cannot add to cart when not authenticated', async ({ page }) => {
     // Arrange: open the app without logging in.
-    await page.goto(BASE_URL);
+    await page.goto('/'); // Uses the configured baseURL
 
     // Assert: the login form is presented instead of the shop.
     await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();

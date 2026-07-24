@@ -1,3 +1,8 @@
+/**
+ * Automated subset of the 32 test cases from add-to-cart-test-cases.md
+ * Mapping: TC-02/03, TC-06, TC-08, TC-09, TC-17, TC-22, TC-23, TC-25, TC-27
+ * See add-to-cart-test-cases.md for the complete list.
+ */
 import { test, expect, type Page } from '@playwright/test';
 
 const BASE_URL = 'https://seminar-shop-login.onrender.com/';

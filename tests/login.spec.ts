@@ -9,7 +9,7 @@ test.describe('Mini Shop — Login', () => {
 
     // Act: enter valid credentials and submit
     await page.getByPlaceholder('standard_user').fill('standard_user');
-    await page.locator('input[type="password"]').fill('secret_sauce');
+    await page.getByPlaceholder('••••••••').fill('secret_sauce');
     await page.getByRole('button', { name: 'Đăng nhập' }).click();
 
     // Assert: user is logged in
@@ -29,7 +29,7 @@ test.describe('Mini Shop — Login', () => {
 
     // Act: enter invalid credentials and submit
     await page.getByPlaceholder('standard_user').fill('invalid_user');
-    await page.locator('input[type="password"]').fill('wrong_password');
+    await page.getByPlaceholder('••••••••').fill('wrong_password');
     await page.getByRole('button', { name: 'Đăng nhập' }).click();
 
     // Assert: login is rejected

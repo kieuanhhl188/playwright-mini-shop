@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "qa-manual-istqb": {
+      "source": "fugazi/test-automation-skills-agents",
+      "sourceType": "github",
+      "skillPath": "skills/qa-manual-istqb/SKILL.md",
+      "computedHash": "1c50bd8e419a11db1d356f0da7497c55be7198a12c292e38f3f4ab46f7d7ed78"
+    }
+  }
+}

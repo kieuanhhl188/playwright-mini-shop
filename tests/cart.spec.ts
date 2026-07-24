@@ -1,6 +1,6 @@
 /**
  * Automated subset of the 32 test cases from add-to-cart-test-cases.md
- * Mapping: TC-02/03, TC-06, TC-08, TC-09, TC-17, TC-22, TC-23, TC-25, TC-27
+ * Mapping: TC-02, TC-06, TC-08, TC-09, TC-15, TC-17, TC-22, TC-23, TC-25, TC-27
  * See add-to-cart-test-cases.md for the complete list.
  */
 import { test, expect, type Page } from '@playwright/test';
@@ -24,7 +24,7 @@ async function login(page: Page): Promise<void> {
 }
 
 test.describe('Mini Shop — Add Product to Cart', () => {
-  test('Positive: adds a single product to an empty cart', async ({ page }) => {
+  test('TC-02 Positive: adds a single product to an empty cart', async ({ page }) => {
     await login(page);
 
     // Act: add "Áo thun Basic" (product 1) once.
@@ -42,7 +42,7 @@ test.describe('Mini Shop — Add Product to Cart', () => {
     await expect(page.getByTestId('cart-total')).toHaveText('199.000₫');
   });
 
-  test('Positive: total recalculates with mixed quantities', async ({ page }) => {
+  test('TC-09 Positive: total recalculates with mixed quantities', async ({ page }) => {
     await login(page);
 
     // Act: add "Áo thun Basic" (199.000₫) twice and "Giày Sneaker" (899.000₫) once.
@@ -62,7 +62,7 @@ test.describe('Mini Shop — Add Product to Cart', () => {
     await expect(page.getByTestId('cart-total')).toHaveText('1.297.000₫');
   });
 
-  test('Negative: cannot add to cart when not authenticated', async ({ page }) => {
+  test('TC-15 Negative: cannot add to cart when not authenticated', async ({ page }) => {
     // Arrange: open the app without logging in.
     await page.goto(BASE_URL);
 

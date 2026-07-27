@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test_suite>
+
+    <feature>Customer Account Creation — Customer Detail page in Insert/Account-Creation mode (Scan And Shop / "Customer &amp; Order Analysis" module, M1.3, user story US-CI-06)</feature>
+
+    <summary>This specification covers manual test cases for the Customer Account Creation form, derived strictly from two BRD sources: Scan_And_Shop_BRD_Overview (M1.3, US-CI-06; resolution R5) and the Customer Detail sub-page document (§1.0 Trigger/Precondition, §1.1 Endpoint, §1.2 Page Properties, §2 Controls, §3.1 Data Source, §5.1 Save Customer Details event with 8 validations + 8 actions). Behaviour under test is limited to what is explicitly documented: mandatory First/Last name, mandatory and format-checked Email, brand-scoped Email uniqueness, minimum-10-digit Home and Mobile phone rules, phone and country-code normalisation on Save, default Gender = Male, default Country = United States of America, and the post-Save context stamping (BrandID, CustomerBrand link, event copy, UserParam.CurrentCustomerID). A critical conflict is recorded and treated per the BRD: the Feature Under Test supplied for this task includes a Terms &amp; Conditions acceptance gate that enables the Save button, but BOTH BRD sources explicitly DE-SCOPE Terms acceptance under R5 (Overview R5 and Resolution Log; Customer Detail §1, §2, §5.1 validation #40, §5.1 action #40, §5.2, CC-3). No Terms-gated Save behaviour is authored as expected behaviour; R5 removal is verified by regression-style absence checks (TC-033, TC-034) and the conflict is raised under requirement_gaps. Techniques applied: Equivalence Partitioning, Boundary Value Analysis, Decision Table Testing, State Transition Testing, Use Case Testing, Checklist-based Testing (for the UI check), and Error Guessing. Prioritisation is risk-based (High/Medium/Low); customer creation and email integrity are the highest-risk areas of this CRM entry flow.</summary>
+
+    <coverage>Functional requirements identified: 18 (FR-01 open form in Insert mode with brand context — §1.0/§1.1/§1.2, US-CI-03; FR-02 capture Contact Information fields — §2; FR-03 capture Address Information fields — §2; FR-04 First Name required — §5.1 #50; FR-05 Last Name required — §5.1 #60; FR-06 Email required/not null — §5.1 #30; FR-07 Email format valid — §5.1 #70; FR-08 Email unique within brand — §5.1 #80, §3.1; FR-09 Home Phone minimum 10 digits — §5.1 #10; FR-10 Mobile/Cell Phone minimum 10 digits — §5.1 #20; FR-11 default Gender = Male — §2; FR-12 default Country = United States of America — §2; FR-13 phone number normalisation on Save — §5.1 actions #10/#20, §3.1 FormattedCellPhone; FR-14 country-code normalisation on Save — §5.1 action #30; FR-15 Save commit chain: stamp BrandID, create CustomerBrand link, copy event, set CurrentCustomerID — §5.1 actions #5/#8/#50/#60, §1.0 postcondition; FR-16 Save action creates the customer — §2 Action, US-CI-06; FR-17 continue flow with the new customer set as current into the scan/shop workspace — §1.0 postcondition, US-CI-05; FR-18 Terms acceptance de-scoped: no Terms UI and Save not Terms-gated — Overview R5, §2, §5.1 #40). Total test cases generated: 41 (TC-001..TC-041). Coverage by requirement: FR-01 → TC-036, TC-029; FR-02 → TC-001, TC-007, TC-035; FR-03 → TC-007, TC-035; FR-04 → TC-002, TC-018; FR-05 → TC-003, TC-018; FR-06 → TC-004, TC-029; FR-07 → TC-005, TC-006, TC-019, TC-037; FR-08 → TC-020, TC-025, TC-026, TC-038; FR-09 → TC-011, TC-012, TC-013, TC-021, TC-039; FR-10 → TC-014, TC-015, TC-016, TC-039; FR-11 → TC-009, TC-022, TC-024; FR-12 → TC-010, TC-023, TC-024; FR-13 → TC-007, TC-027, TC-039; FR-14 → TC-010, TC-028; FR-15 → TC-030; FR-16 → TC-001, TC-017, TC-040; FR-17 → TC-031, TC-032; FR-18 → TC-033, TC-034. Coverage by test design technique: Equivalence Partitioning = 19 (TC-001..TC-010, TC-022, TC-023, TC-024, TC-025, TC-026, TC-027, TC-028, TC-033, TC-034); Boundary Value Analysis = 6 (TC-011..TC-016); Decision Table Testing = 5 (TC-017..TC-021); State Transition Testing = 2 (TC-029, TC-030); Use Case Testing = 3 (TC-031, TC-032, TC-036); Checklist-based Testing = 1 (TC-035); Error Guessing = 5 (TC-037..TC-041). Non-functional areas (Security/authorization, Performance, Accessibility, Compatibility, Reliability) are not documented in the BRD and are reported under requirement_gaps rather than tested.</coverage>
+
+    <requirement_gaps>
+        <gap id="RG-01" severity="High">CRITICAL CONFLICT. The Feature Under Test states "Users must accept the Terms before the Save button becomes enabled" and describes an embedded Store Terms section and Privacy Policy link. Both BRD sources DE-SCOPE this under R5 (Overview R5 and Resolution Log; Customer Detail §1, §2, §5.1 validation #40 removed, §5.1 action #40 removed, §5.2, CC-3). The two inputs contradict each other; the authoritative source must be confirmed before any Terms-gated Save behaviour can be specified.</gap>
+        <gap id="RG-02" severity="High">Save button enable/disable behaviour is undocumented in scope. The BRD models Save as validate-on-click (§5.1: 8 validations then commit); it defines no dynamic enabling/disabling of the Save control. The "Save becomes enabled" behaviour cannot be verified against the BRD.</gap>
+        <gap id="RG-03" severity="Medium">It is not stated whether the minimum-10-digit rules (§5.1 #10 Home, #20 Cell) fire only when a value is entered. Both phone fields are optional (§2), implying conditional application, but this is not explicit.</gap>
+        <gap id="RG-04" severity="Medium">No maximum length or upper boundary is documented for phone numbers; only "10 Digits Min" is stated. The normalisation expression (§3.1 FormattedCellPhone) formats only the first 10 digits, leaving 11+ digit handling undefined.</gap>
+        <gap id="RG-05" severity="Medium">Exact user-facing validation/error message text is not specified. §5.1 lists rule names only (e.g., "First Name Missing", "Duplicate Brand Email Address"), not displayed messages.</gap>
+        <gap id="RG-06" severity="Medium">No success confirmation behaviour is documented (no success message, redirect target, or confirmation UI). The §1.0 postcondition describes context stamping and flow continuation only.</gap>
+        <gap id="RG-07" severity="Medium">Gender and Country are marked required (*) in §2, but there is NO Save validation for either among the 8 validations in §5.1. It is unclear whether "required" is enforced solely by the pre-filled defaults or whether clearing them (if possible) is blocked at Save.</gap>
+        <gap id="RG-08" severity="Low">The enumerated valid Gender values (beyond default Male) and the full Country list are sourced externally (Global Configuration / Rest Countries) and are not listed in these documents.</gap>
+        <gap id="RG-09" severity="Medium">The definition of a "valid" email format (§5.1 #70) is unspecified (RFC compliance, permitted TLDs, case-sensitivity, whitespace handling).</gap>
+        <gap id="RG-10" severity="Medium">No field-length limits, character-set restrictions, or format rules are documented for First Name, Last Name, Title, Address, City, State, or Postal Code.</gap>
+        <gap id="RG-11" severity="Medium">Duplicate-email matching semantics are not specified: whether the §5.1 #80 check is case-insensitive and/or trims whitespace before comparison.</gap>
+        <gap id="RG-12" severity="Low">A 'Close' literal exists in the data source (§3.1 'Close' AS CloseText), but §2.B states the only action control is Save. The existence/behaviour of a Close/Cancel control on the form is ambiguous.</gap>
+        <gap id="RG-13" severity="Medium">Behaviour on server failure, partial save, duplicate double-submit, or concurrency (two associates creating the same brand email simultaneously) is not documented; §5.1 #80 is a check-then-insert with no stated race protection.</gap>
+        <gap id="RG-14" severity="Medium">No audit requirement is documented for account creation on this page beyond generic AddedBy/AddedOn/ChangedBy/ChangedOn columns in §3.1; no explicit audit/event-history acceptance criteria are stated.</gap>
+        <gap id="RG-15" severity="High">Non-functional requirements are absent: Security/authorization (which roles may create customers; unauthenticated/missing brand-context access), Performance, Accessibility (keyboard, focus order, labels/ARIA, contrast), Compatibility (browsers/devices), and Reliability are not specified anywhere in the BRD.</gap>
+        <gap id="RG-16" severity="Low">Sub-account handling is ambiguous: §3.1 inherits a parent email via LEFT JOIN (isnull(C2.Email, C.Email)); interaction between ParentCustomerID and the brand duplicate-email check is undocumented.</gap>
+    </requirement_gaps>
+
+    <assumptions>
+        <assumption id="AS-01">The BRD is authoritative over the Feature Under Test wherever they conflict (per the task constraint to use only documented information). Accordingly, Terms &amp; Conditions acceptance is OUT OF SCOPE (R5) and Save is NOT gated by Terms.</assumption>
+        <assumption id="AS-02">The minimum-10-digit phone rules are assumed to apply only when a phone value is entered, because Home Phone and Mobile Phone are optional (§2). TC-008, TC-012, and TC-015 rely on this.</assumption>
+        <assumption id="AS-03">Preconditions common to all cases: the user is authenticated as a store associate / back-office user, a brand context is set (UserParam.CurrentOrderBrandID), and the Customer Detail page is opened in Insert (Account Creation) mode via Create Account at ?$mode=Insert&amp;BrandID={CurrentOrderBrandID} (§1.0, §1.1, §1.2).</assumption>
+        <assumption id="AS-04">"Valid email format" is assumed to mean a conventional local-part@domain.tld structure for designing positive/negative format cases, pending RG-09.</assumption>
+        <assumption id="AS-05">Email uniqueness is enforced per brand only (§5.1 #80 combined with the brand-scoped WHERE clause in §3.1), so the same email may exist under a different brand. TC-026 relies on this and must be re-baselined if RG-13 clarification differs.</assumption>
+        <assumption id="AS-06">Phone display normalisation to the US pattern "(xxx) xxx-xxxx" (§3.1 FormattedCellPhone; §5.1 actions #10/#20) is assumed to be the expected stored/displayed format.</assumption>
+        <assumption id="AS-07">As no distinct success UI is documented (RG-06), successful creation is verified via documented postconditions: the new Customer is stamped to the brand, a CustomerBrand link is created, and UserParam.CurrentCustomerID is set to the new customer (§1.0, §5.1 actions).</assumption>
+        <assumption id="AS-08">Error Guessing cases target the robustness of documented validations (§5.1 #10/#20/#70/#80) using inputs likely to expose defects; where the precise handling is unspecified, the expected result is expressed against the documented rule and cross-referenced to the relevant gap.</assumption>
+    </assumptions>
+
+    <risks>
+        <risk level="High" id="R-H1" refs="FR-08, RG-11, RG-13">Brand-scoped email uniqueness (§5.1 #80). Failure allows duplicate customer records within a brand, corrupting the CRM source of truth and downstream order/scan association. Case-insensitivity and concurrency are unspecified, widening the failure surface.</risk>
+        <risk level="High" id="R-H2" refs="FR-04, FR-05, FR-06, FR-16">Mandatory field enforcement and customer commit (§5.1 #30/#50/#60; actions). Failure creates incomplete or uncontactable customer records that block or misroute the assisted scan/shop flow.</risk>
+        <risk level="High" id="R-H3" refs="FR-18, RG-01">Terms de-scope (R5) vs the supplied feature spec. If the removed Terms gate (validation #40/action #40) is not fully removed, Save may be blocked or perform obsolete initialisation, breaking creation for all users.</risk>
+        <risk level="High" id="R-H4" refs="FR-15, FR-17">Post-Save context stamping (§5.1 actions #5/#8/#50/#60). If BrandID, the CustomerBrand link, or CurrentCustomerID is not set correctly, the new customer is not brand-scoped or the flow does not continue with them selected.</risk>
+        <risk level="High" id="R-H5" refs="RG-15">Undocumented authorization. Without a defined access model, unauthorized roles or unauthenticated/missing-brand access could create or tamper with customer records.</risk>
+        <risk level="Medium" id="R-M1" refs="FR-09, FR-10, FR-13, RG-04">Phone validation and normalisation (§5.1 #10/#20, actions #10/#20). Incorrect digit-count handling or truncation of 11+ digit input yields malformed phone data used later for contact.</risk>
+        <risk level="Medium" id="R-M2" refs="FR-07, RG-09">Email format validation (§5.1 #70). An unclear format definition risks both false rejects (valid emails blocked) and false accepts (malformed emails stored).</risk>
+        <risk level="Medium" id="R-M3" refs="FR-11, FR-12, RG-07">Defaults vs required enforcement for Gender/Country. With no Save validation, clearing a default (if possible) could persist an empty "required" field.</risk>
+        <risk level="Medium" id="R-M4" refs="RG-05, RG-06">Absent error and success messaging. Users may not understand why Save failed or whether creation succeeded, causing rework or duplicate attempts.</risk>
+        <risk level="Low" id="R-L1" refs="FR-02, FR-03">UI layout/labels/grouping (§2). Cosmetic or labelling defects have low functional impact but affect usability.</risk>
+        <risk level="Low" id="R-L2" refs="FR-14, RG-08">Country-code normalisation for non-default countries (§5.1 action #30) with an unlisted country set; low frequency in the primary US-default flow.</risk>
+    </risks>
+
+    <recommendations>
+        <recommendation id="REC-01" refs="RG-01, RG-02">Resolve the Terms conflict authoritatively: confirm R5 in the Feature Under Test, remove the Terms/Save-enablement wording, and explicitly state that Save is validate-on-click and always enabled (or define exact enable/disable rules if a gate is reinstated).</recommendation>
+        <recommendation id="REC-02" refs="RG-03, RG-04">Specify phone rules precisely: whether the 10-digit minimum applies only when a value is entered, the permitted character set, the maximum length, and the handling of input beyond 10 digits (reject vs truncate vs store).</recommendation>
+        <recommendation id="REC-03" refs="RG-05, RG-06">Document exact validation/error message text for each rule (§5.1 #10/#20/#30/#50/#60/#70/#80) and define the success confirmation behaviour (message and/or navigation target).</recommendation>
+        <recommendation id="REC-04" refs="RG-07">Clarify enforcement of required Gender and Country: either add explicit Save validations or state that required-ness is guaranteed by non-clearable defaults.</recommendation>
+        <recommendation id="REC-05" refs="RG-09, RG-11">Define the email format acceptance criteria and the duplicate-match semantics (case-insensitivity, whitespace trimming) so uniqueness and format checks are unambiguous and testable.</recommendation>
+        <recommendation id="REC-06" refs="RG-10">Add field constraints (max length, allowed characters) for all free-text fields to enable boundary and robustness testing.</recommendation>
+        <recommendation id="REC-07" refs="RG-13">Specify duplicate-submit and concurrency handling for the check-then-insert email uniqueness path (e.g., unique constraint, idempotent Save, disable-on-submit).</recommendation>
+        <recommendation id="REC-08" refs="RG-15">Add non-functional requirements: an authorization model (roles permitted to create customers; unauthenticated/missing brand-context behaviour), plus accessibility, performance, compatibility, and reliability targets.</recommendation>
+        <recommendation id="REC-09" refs="RG-12, RG-16">Clarify the presence/behaviour of a Close/Cancel control and the sub-account (ParentCustomerID) email-inheritance interaction with the brand duplicate-email rule.</recommendation>
+        <recommendation id="REC-10" refs="RG-14">State audit acceptance criteria for account creation (what is recorded, where, and whether it is user-verifiable).</recommendation>
+    </recommendations>
+
+    <test_cases>
+
+        <test_case>
+            <id>TC-001</id>
+            <requirement_reference>US-CI-06; Customer Detail §2 (Controls), §5.1 (Save Customer Details); FR-16, FR-11, FR-12</requirement_reference>
+            <title>Create customer with all valid mandatory fields and default Gender/Country</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode with brand context set (AS-03). No existing customer with the test email in the current brand.</preconditions>
+            <test_data>First Name = "John"; Last Name = "Miller"; Email = "john.miller@example.com"; Gender = Male (default); Country = United States of America (default); optional fields blank.</test_data>
+            <steps>Enter First and Last Name. Enter a valid, brand-unique Email. Leave Gender and Country at defaults. Click Save.</steps>
+            <expected_result>All 8 validations pass; the Customer is committed and stamped to the current brand (BrandID = CurrentOrderBrandID); a CustomerBrand link is created; UserParam.CurrentCustomerID is set to the new customer and the flow continues with that customer selected (AS-07).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-002</id>
+            <requirement_reference>Customer Detail §5.1 validation #50 "First Name Missing"; FR-04</requirement_reference>
+            <title>Reject creation when First Name is empty</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>First Name = "" (empty); Last Name = "Miller"; Email = "john.miller@example.com".</test_data>
+            <steps>Leave First Name empty. Enter a valid Last Name and Email. Click Save.</steps>
+            <expected_result>Save is blocked by validation #50 "First Name Missing"; no customer is created; the user remains on the form (message text unspecified — RG-05).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-003</id>
+            <requirement_reference>Customer Detail §5.1 validation #60 "Last Name Missing"; FR-05</requirement_reference>
+            <title>Reject creation when Last Name is empty</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>First Name = "John"; Last Name = "" (empty); Email = "john.miller@example.com".</test_data>
+            <steps>Enter a valid First Name and Email. Leave Last Name empty. Click Save.</steps>
+            <expected_result>Save is blocked by validation #60 "Last Name Missing"; no customer is created; the user remains on the form.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-004</id>
+            <requirement_reference>Customer Detail §5.1 validation #30 "Email Address IS NULL"; FR-06</requirement_reference>
+            <title>Reject creation when Email is empty (Email required)</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>First Name = "John"; Last Name = "Miller"; Email = "" (empty).</test_data>
+            <steps>Enter valid First and Last Name. Leave Email empty. Click Save.</steps>
+            <expected_result>Save is blocked by validation #30 "Email Address IS NULL"; no customer is created; the user remains on the form.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-005</id>
+            <requirement_reference>Customer Detail §5.1 validation #70 "email address format"; FR-07</requirement_reference>
+            <title>Reject creation when Email format is invalid</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>First Name = "John"; Last Name = "Miller"; Email = "john.miller.example.com" (no @, invalid-format partition per AS-04).</test_data>
+            <steps>Enter valid First and Last Name. Enter an Email that does not match a valid structure. Click Save.</steps>
+            <expected_result>Save is blocked by validation #70 "email address format"; no customer is created; the user remains on the form.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-006</id>
+            <requirement_reference>Customer Detail §5.1 validations #30, #70; FR-07</requirement_reference>
+            <title>Accept a representative valid Email (valid-format partition)</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03); email not already used in the current brand.</preconditions>
+            <test_data>First Name = "Amara"; Last Name = "Okafor"; Email = "amara.okafor@sub.example.co".</test_data>
+            <steps>Enter valid First and Last Name. Enter a well-formed, brand-unique Email. Click Save.</steps>
+            <expected_result>Format (#70) and null (#30) checks pass; the customer is created and stamped to the brand (subject to RG-09 on the exact format definition).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-007</id>
+            <requirement_reference>Customer Detail §2 (optional Contact/Address fields), §5.1 actions #10/#20/#30; FR-02, FR-03, FR-13</requirement_reference>
+            <title>Create customer with all optional fields populated with valid data</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>Mandatory: First = "Lee", Last = "Tran", Email = "lee.tran@example.com". Optional: Title = "Mr"; Home Phone = "2025550100"; Mobile Country Code = "+1"; Mobile Phone = "2025550111"; Address = "10 Main St"; City = "Austin"; State = "TX"; Postal Code = "78701"; Country = United States of America.</test_data>
+            <steps>Enter all mandatory fields. Populate every optional field with valid values (phones with 10 digits). Click Save.</steps>
+            <expected_result>All validations pass; the customer is created with contact and address details persisted; phones and country code are normalised on Save (actions #10, #20, #30).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-008</id>
+            <requirement_reference>Customer Detail §2 (optional fields); AS-02; FR-02, FR-03</requirement_reference>
+            <title>Create customer with only mandatory fields (all optional fields blank)</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03); phone minimum-digit rule assumed to apply only when a value is entered (AS-02, RG-03).</preconditions>
+            <test_data>First = "Nina"; Last = "Roy"; Email = "nina.roy@example.com"; all optional fields blank; Gender/Country at defaults.</test_data>
+            <steps>Enter only the mandatory fields. Leave Title, all phones, and all address fields blank. Click Save.</steps>
+            <expected_result>Save succeeds; empty optional phone fields do not trigger the minimum-10-digit validations (AS-02); the customer is created and set as current.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-009</id>
+            <requirement_reference>Customer Detail §2 (Gender, default Male); FR-11; RG-08</requirement_reference>
+            <title>Create customer with a non-default valid Gender value</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03); a non-default Gender value is available from Global Configuration (RG-08).</preconditions>
+            <test_data>First = "Sara"; Last = "Kim"; Email = "sara.kim@example.com"; Gender = a valid non-default value (e.g., Female).</test_data>
+            <steps>Enter mandatory fields. Change Gender from the default Male to another valid value. Click Save.</steps>
+            <expected_result>The selected Gender is accepted and persisted with the created customer (dependent on RG-08 for the valid value set).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-010</id>
+            <requirement_reference>Customer Detail §2 (Country, default USA), §5.1 action #30; FR-12, FR-14; RG-08</requirement_reference>
+            <title>Create customer with a non-default valid Country value</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03); Country list available (Rest Countries; RG-08).</preconditions>
+            <test_data>First = "Diego"; Last = "Alvarez"; Email = "diego.alvarez@example.com"; Country = a valid non-default value (e.g., Canada).</test_data>
+            <steps>Enter mandatory fields. Change Country from the default United States of America to another valid country. Click Save.</steps>
+            <expected_result>The selected Country is accepted and persisted; the country-code normalisation action (#30) applies the corresponding brand/country code.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-011</id>
+            <requirement_reference>Customer Detail §5.1 validation #10 "Home Phone Number 10 Digits Min"; FR-09</requirement_reference>
+            <title>Home Phone with 9 digits is rejected (just below minimum)</title>
+            <priority>High</priority>
+            <test_design_technique>Boundary Value Analysis</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>Mandatory fields valid; Home Phone = "202555010" (9 digits).</test_data>
+            <steps>Enter valid mandatory fields. Enter a Home Phone with 9 digits. Click Save.</steps>
+            <expected_result>Save is blocked by validation #10 "Home Phone Number 10 Digits Min"; no customer is created.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-012</id>
+            <requirement_reference>Customer Detail §5.1 validation #10, action #10; FR-09, FR-13</requirement_reference>
+            <title>Home Phone with exactly 10 digits is accepted (minimum boundary)</title>
+            <priority>High</priority>
+            <test_design_technique>Boundary Value Analysis</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>Mandatory fields valid; Home Phone = "2025550100" (10 digits).</test_data>
+            <steps>Enter valid mandatory fields. Enter a Home Phone with exactly 10 digits. Click Save.</steps>
+            <expected_result>Validation #10 passes; the customer is created; the home phone is normalised on Save (action #10).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-013</id>
+            <requirement_reference>Customer Detail §5.1 validation #10, §3.1 FormattedCellPhone; FR-09; RG-04</requirement_reference>
+            <title>Home Phone with 11 digits is accepted (above minimum)</title>
+            <priority>Medium</priority>
+            <test_design_technique>Boundary Value Analysis</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03); upper bound undefined (RG-04).</preconditions>
+            <test_data>Mandatory fields valid; Home Phone = "12025550100" (11 digits).</test_data>
+            <steps>Enter valid mandatory fields. Enter a Home Phone with 11 digits. Click Save.</steps>
+            <expected_result>Validation #10 (minimum) passes and the customer is created. Normalisation formats only the first 10 digits (RG-04) — observe handling of the 11th digit and raise a defect/clarification if truncation is unintended.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-014</id>
+            <requirement_reference>Customer Detail §5.1 validation #20 "Cell Phone Number 10 Digits Min"; FR-10</requirement_reference>
+            <title>Mobile Phone with 9 digits is rejected (just below minimum)</title>
+            <priority>High</priority>
+            <test_design_technique>Boundary Value Analysis</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>Mandatory fields valid; Mobile Country Code = "+1"; Mobile Phone = "202555011" (9 digits).</test_data>
+            <steps>Enter valid mandatory fields. Enter a Mobile Phone with 9 digits. Click Save.</steps>
+            <expected_result>Save is blocked by validation #20 "Cell Phone Number 10 Digits Min"; no customer is created.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-015</id>
+            <requirement_reference>Customer Detail §5.1 validation #20, action #20, §3.1 FormattedCellPhone; FR-10, FR-13</requirement_reference>
+            <title>Mobile Phone with exactly 10 digits is accepted (minimum boundary)</title>
+            <priority>High</priority>
+            <test_design_technique>Boundary Value Analysis</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>Mandatory fields valid; Mobile Country Code = "+1"; Mobile Phone = "2025550111" (10 digits).</test_data>
+            <steps>Enter valid mandatory fields. Enter a Mobile Phone with exactly 10 digits. Click Save.</steps>
+            <expected_result>Validation #20 passes; the customer is created; the cell phone is normalised to the "(xxx) xxx-xxxx" pattern on Save (action #20, AS-06).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-016</id>
+            <requirement_reference>Customer Detail §5.1 validation #20, §3.1 FormattedCellPhone; FR-10; RG-04</requirement_reference>
+            <title>Mobile Phone with 11 digits is accepted (above minimum)</title>
+            <priority>Medium</priority>
+            <test_design_technique>Boundary Value Analysis</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03); upper bound undefined (RG-04).</preconditions>
+            <test_data>Mandatory fields valid; Mobile Phone = "12025550111" (11 digits).</test_data>
+            <steps>Enter valid mandatory fields. Enter a Mobile Phone with 11 digits. Click Save.</steps>
+            <expected_result>Validation #20 (minimum) passes and the customer is created. Observe normalisation of digits beyond the first 10 (RG-04) and raise clarification if truncation is unintended.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-017</id>
+            <requirement_reference>Customer Detail §5.1 (all validations pass path); US-CI-06; FR-16</requirement_reference>
+            <title>Decision Table Rule 1 — all required valid, email unique, phones valid: Save succeeds</title>
+            <priority>High</priority>
+            <test_design_technique>Decision Table Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Conditions: First=T, Last=T, Email present=T, format valid=T, brand-unique=T, entered phones ≥10 digits=T.</preconditions>
+            <test_data>First = "Owen"; Last = "Park"; Email = "owen.park@example.com"; Home Phone = "2025550100"; Mobile Phone = "2025550111".</test_data>
+            <steps>Populate all fields to satisfy every "T" condition. Click Save.</steps>
+            <expected_result>Action = customer created and set as current (all 8 validations pass; commit actions execute).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-018</id>
+            <requirement_reference>Customer Detail §5.1 validation #60; FR-05</requirement_reference>
+            <title>Decision Table Rule 2 — Last Name missing (others valid): Save fails</title>
+            <priority>High</priority>
+            <test_design_technique>Decision Table Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Conditions: First=T, Last=F, Email present/valid/unique=T.</preconditions>
+            <test_data>First = "Owen"; Last = ""; Email = "owen.park2@example.com".</test_data>
+            <steps>Enter First and a valid Email; leave Last Name empty. Click Save.</steps>
+            <expected_result>Action = creation blocked at validation #60 "Last Name Missing"; no customer created.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-019</id>
+            <requirement_reference>Customer Detail §5.1 validation #70; FR-07</requirement_reference>
+            <title>Decision Table Rule 3 — names present but Email format invalid: Save fails</title>
+            <priority>High</priority>
+            <test_design_technique>Decision Table Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Conditions: First=T, Last=T, Email present=T, format valid=F.</preconditions>
+            <test_data>First = "Owen"; Last = "Park"; Email = "owen.park@@example" (malformed).</test_data>
+            <steps>Enter valid names and a malformed Email. Click Save.</steps>
+            <expected_result>Action = creation blocked at validation #70 "email address format"; no customer created.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-020</id>
+            <requirement_reference>Customer Detail §5.1 validation #80, §3.1 (brand-scoped WHERE); FR-08</requirement_reference>
+            <title>Decision Table Rule 4 — email valid format but duplicate within brand: Save fails</title>
+            <priority>High</priority>
+            <test_design_technique>Decision Table Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). A customer with the same email already exists in the current brand. Conditions: First=T, Last=T, Email present=T, format valid=T, brand-unique=F.</preconditions>
+            <test_data>First = "Owen"; Last = "Park"; Email = "existing.customer@example.com" (already present in this brand).</test_data>
+            <steps>Enter valid names. Enter an email that already exists for another customer in the current brand. Click Save.</steps>
+            <expected_result>Action = creation blocked at validation #80 "Duplicate Brand Email Address"; no duplicate customer created within the brand.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-021</id>
+            <requirement_reference>Customer Detail §5.1 validation #10; FR-09</requirement_reference>
+            <title>Decision Table Rule 5 — all required valid but entered Home Phone below 10 digits: Save fails</title>
+            <priority>Medium</priority>
+            <test_design_technique>Decision Table Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Conditions: First/Last/Email valid=T, entered Home Phone ≥10 digits=F.</preconditions>
+            <test_data>First = "Owen"; Last = "Park"; Email = "owen.park3@example.com"; Home Phone = "202555" (6 digits).</test_data>
+            <steps>Enter valid mandatory fields. Enter a Home Phone with fewer than 10 digits. Click Save.</steps>
+            <expected_result>Action = creation blocked at validation #10 "Home Phone Number 10 Digits Min" despite valid name/email; no customer created.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-022</id>
+            <requirement_reference>Customer Detail §2 (Gender default = Male); FR-11</requirement_reference>
+            <title>Gender defaults to Male on form open</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form freshly opened in Insert mode (AS-03).</preconditions>
+            <test_data>None (observe default state).</test_data>
+            <steps>Open the Account Creation form. Observe the Gender field before any input.</steps>
+            <expected_result>Gender is pre-selected as Male by default (§2).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-023</id>
+            <requirement_reference>Customer Detail §2 (Country default = United States of America); FR-12</requirement_reference>
+            <title>Country defaults to United States of America on form open</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form freshly opened in Insert mode (AS-03).</preconditions>
+            <test_data>None (observe default state).</test_data>
+            <steps>Open the Account Creation form. Observe the Country field before any input.</steps>
+            <expected_result>Country is pre-selected as United States of America by default (§2).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-024</id>
+            <requirement_reference>Customer Detail §2 (defaults); FR-11, FR-12</requirement_reference>
+            <title>Save with defaults unchanged persists Male and United States of America</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>First = "Grace"; Last = "Hall"; Email = "grace.hall@example.com"; Gender and Country left at defaults.</test_data>
+            <steps>Enter mandatory fields only. Do not change Gender or Country. Click Save.</steps>
+            <expected_result>The customer is created with Gender = Male and Country = United States of America persisted from the defaults.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-025</id>
+            <requirement_reference>Customer Detail §5.1 validation #80; FR-08</requirement_reference>
+            <title>Duplicate email within the same brand is rejected</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). An email E already exists for a customer in the current brand.</preconditions>
+            <test_data>First = "Paul"; Last = "Reed"; Email = E (duplicate in current brand).</test_data>
+            <steps>Enter valid names. Enter email E already used in this brand. Click Save.</steps>
+            <expected_result>Validation #80 blocks Save; no second customer with email E is created in this brand.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-026</id>
+            <requirement_reference>Customer Detail §5.1 validation #80, §3.1 (WHERE C.BrandID = CurrentOrderBrandID); FR-08; AS-05</requirement_reference>
+            <title>Same email under a different brand is allowed (brand-scoped uniqueness)</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Email E exists for a customer under Brand A. The current order brand context is Brand B (AS-05). Form open in Insert mode for Brand B.</preconditions>
+            <test_data>First = "Paul"; Last = "Reed"; Email = E; current brand = Brand B.</test_data>
+            <steps>Confirm the current order brand is Brand B (different from where E exists). Enter valid names and email E. Click Save.</steps>
+            <expected_result>Save succeeds; the duplicate-email validation is brand-scoped, so E may exist once per brand. Re-baseline if RG-13 clarification changes uniqueness scope.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-027</id>
+            <requirement_reference>Customer Detail §5.1 action #20, §3.1 FormattedCellPhone; FR-13</requirement_reference>
+            <title>Mobile phone is normalised to the "(xxx) xxx-xxxx" format after Save</title>
+            <priority>Medium</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03); normalisation expectation per AS-06.</preconditions>
+            <test_data>First = "Ivy"; Last = "Cole"; Email = "ivy.cole@example.com"; Mobile Phone entered as "2025550111" (unformatted 10 digits).</test_data>
+            <steps>Enter mandatory fields and an unformatted 10-digit Mobile Phone. Click Save. Re-open/inspect the created customer's cell phone value.</steps>
+            <expected_result>Action #20 normalises the number; the stored/displayed cell phone renders as "(202) 555-0111" per the §3.1 formatting expression (AS-06).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-028</id>
+            <requirement_reference>Customer Detail §5.1 action #30 "Update CountryCode from CountryCodeCustomer Brand"; FR-14</requirement_reference>
+            <title>Country code is normalised from the brand/country on Save</title>
+            <priority>Low</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>First = "Ivy"; Last = "Cole"; Email = "ivy.cole2@example.com"; Country = United States of America; Mobile Country Code left blank.</test_data>
+            <steps>Enter mandatory fields; leave Mobile Country Code blank. Click Save. Inspect the stored country/phone country code.</steps>
+            <expected_result>Action #30 applies the correct country code derived from the brand/country; the created record carries a normalised country code.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-029</id>
+            <requirement_reference>Customer Detail §1.2 (Insert mode), §5.1 validation #30; FR-01, FR-06</requirement_reference>
+            <title>State transition — invalid Save keeps the form active, then correction commits</title>
+            <priority>High</priority>
+            <test_design_technique>State Transition Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). States: S1 Empty Insert form → S2 Data Entered → S3 Validation Failed → S4 Committed.</preconditions>
+            <test_data>Step-1 invalid: First = "Kate"; Last = "Doe"; Email = "" (empty). Step-2 correction: Email = "kate.doe@example.com".</test_data>
+            <steps>From S1, enter names but leave Email empty (S2). Click Save — expect transition to S3 (Validation Failed). Enter a valid Email. Click Save again — expect transition to S4 (Committed).</steps>
+            <expected_result>The first Save transitions to Validation Failed (blocked by #30, no commit, form remains editable with data retained); after correction, Save transitions to Committed and the customer is created and set as current. No invalid intermediate state persists a customer.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-030</id>
+            <requirement_reference>Customer Detail §5.1 actions #5/#8/#10/#20/#30/#50/#60, §1.0 postcondition; FR-15; (action #40 removed — R5)</requirement_reference>
+            <title>State transition — successful Save stamps brand context and current customer</title>
+            <priority>High</priority>
+            <test_design_technique>State Transition Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Transition: Data Entered (valid) → Committed → Current-customer context established.</preconditions>
+            <test_data>First = "Mark"; Last = "Lane"; Email = "mark.lane@example.com".</test_data>
+            <steps>Enter valid mandatory fields. Click Save. Observe the resulting context.</steps>
+            <expected_result>On the transition to Committed, the Save actions execute in order: BrandID stamped to CurrentBrandID (#5), CustomerBrand link inserted (#8), phone/country-code normalised (#10/#20/#30), event copied (#50), and UserParam.CurrentCustomerID set to the new customer (#60). The flow continues with the new customer selected (AS-07). Action #40 (Terms) is de-scoped per R5 and must NOT execute.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-031</id>
+            <requirement_reference>Overview US-CI-01, US-CI-02, US-CI-03, US-CI-06, US-CI-05; Customer Detail §1.0; FR-17</requirement_reference>
+            <title>End-to-end — search with no match, create account, and continue into the scan/shop flow</title>
+            <priority>High</priority>
+            <test_design_technique>Use Case Testing</test_design_technique>
+            <preconditions>User authenticated with a brand context set (AS-03). Customer Search panel accessible (US-CI-01).</preconditions>
+            <test_data>Search: First = "Zoe", Last = "West" (no existing match). Create: First = "Zoe"; Last = "West"; Email = "zoe.west@example.com".</test_data>
+            <steps>Open the Customer Search panel (US-CI-01). Search by first + last name returning no match (US-CI-02). Click Create Account to branch to the form (US-CI-03 → US-CI-06). Complete the mandatory fields and click Save. Observe that the new customer becomes the current customer.</steps>
+            <expected_result>The customer is created, stamped to the brand, linked via CustomerBrand, and set as UserParam.CurrentCustomerID; the associate continues with the new customer selected, entering the downstream scan/shop workspace (as with an existing customer via Search Results → Scan, US-CI-05).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-032</id>
+            <requirement_reference>Overview US-CI-01, US-CI-03; Customer Detail §1.0; FR-01, FR-17</requirement_reference>
+            <title>End-to-end — branch directly to Create Account from the search entry (no search run)</title>
+            <priority>Medium</priority>
+            <test_design_technique>Use Case Testing</test_design_technique>
+            <preconditions>User authenticated with brand context set (AS-03). Customer Search panel open; no search executed (US-CI-01 states no search runs automatically on open).</preconditions>
+            <test_data>First = "Ben"; Last = "Ford"; Email = "ben.ford@example.com".</test_data>
+            <steps>Open the Customer Search panel. Without running a search, click Create Account (US-CI-03, no match required). Complete mandatory fields on the form. Click Save.</steps>
+            <expected_result>The Account Creation form opens in Insert mode with the brand context; the customer is created and set as current, confirming Create Account is reachable without first running a search.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-033</id>
+            <requirement_reference>Overview R5; Customer Detail §2 (Terms row removed), §5.1 validation #40 removed; FR-18; RG-01</requirement_reference>
+            <title>R5 verification — the embedded Store Terms section and Privacy Policy link are NOT present</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Verifies the R5 de-scope; directly addresses RG-01.</preconditions>
+            <test_data>None (UI inspection).</test_data>
+            <steps>Open the Account Creation form. Inspect for an embedded "{Brand} Store Terms" block, a Privacy Policy link, and any accept-terms control.</steps>
+            <expected_result>No Store Terms block, Privacy Policy link, or acceptance control is present, consistent with R5. If any Terms UI appears, raise a defect/clarification against RG-01 (feature-vs-BRD conflict).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-034</id>
+            <requirement_reference>Overview R5; Customer Detail §5.1 validation #40 removed; FR-18; RG-01, RG-02</requirement_reference>
+            <title>R5 verification — Save is NOT gated by Terms acceptance</title>
+            <priority>High</priority>
+            <test_design_technique>Equivalence Partitioning</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Addresses RG-01/RG-02 (feature claims Save is Terms-gated; BRD removes the gate).</preconditions>
+            <test_data>First = "Ada"; Last = "Nash"; Email = "ada.nash@example.com"; no terms interaction available/performed.</test_data>
+            <steps>Enter only the mandatory contact fields. Without accepting any Terms (none should exist), click Save.</steps>
+            <expected_result>Save proceeds and creates the customer using only the documented validations (#10, #20, #30, #50, #60, #70, #80); no IsTermsAccepted validation (#40) blocks Save. Any Terms-based blocking indicates the feature-vs-BRD conflict (RG-01).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-035</id>
+            <requirement_reference>Customer Detail §2 (Controls: Contact and Address groups, required markers); FR-02, FR-03; RG-07</requirement_reference>
+            <title>UI validation — mandatory markers and field grouping match the BRD</title>
+            <priority>Low</priority>
+            <test_design_technique>Checklist-based Testing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03).</preconditions>
+            <test_data>None (UI inspection against §2 controls).</test_data>
+            <steps>Open the form. Verify the Contact group contains First*, Last*, Title, Gender*, Email*, Home Phone, Mobile Country Code, Mobile Phone. Verify the Address group contains Address, City, State, Postal Code, Country*. Verify required fields (First, Last, Gender, Email, Country) are visually marked as required.</steps>
+            <expected_result>Field presence, grouping, and required markers match §2. Note: no Save validation exists for Gender/Country (RG-07) — record any discrepancy between the required marker and actual enforcement.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-036</id>
+            <requirement_reference>Customer Detail §1.0 (Trigger/Precondition), §1.1 (Endpoint), §1.2 (Page Properties); Overview US-CI-03; FR-01</requirement_reference>
+            <title>Precondition/navigation — form opens in Insert mode with the current brand context</title>
+            <priority>Medium</priority>
+            <test_design_technique>Use Case Testing</test_design_technique>
+            <preconditions>User authenticated; a current order brand is set (UserParam.CurrentOrderBrandID).</preconditions>
+            <test_data>Current order brand = a known brand ID.</test_data>
+            <steps>From Customer Search, click Create Account. Observe the opened URL/mode and the brand scoping.</steps>
+            <expected_result>The Customer Detail page opens at ?$mode=Insert&amp;BrandID={CurrentOrderBrandID} with an empty scaffolded customer row scoped to the current brand; the form is ready for data entry (Insert/Account-Creation mode).</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-037</id>
+            <requirement_reference>Customer Detail §5.1 validations #70, #80; FR-07, FR-08; RG-09, RG-11; AS-08</requirement_reference>
+            <title>Error guessing — Email with leading/trailing whitespace</title>
+            <priority>Medium</priority>
+            <test_design_technique>Error Guessing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Probes robustness of the email format (#70) and duplicate (#80) rules.</preconditions>
+            <test_data>First = "Sam"; Last = "Doe"; Email = " sam.doe@example.com " (leading and trailing spaces); a customer with "sam.doe@example.com" may or may not already exist in the brand.</test_data>
+            <steps>Enter valid names. Enter the Email with surrounding spaces. Click Save. If a trimmed duplicate exists, observe whether it is detected.</steps>
+            <expected_result>Behaviour is per the documented format (#70) and duplicate (#80) rules. Since whitespace/trim handling is unspecified (RG-09/RG-11), record the actual result: ideally the email is trimmed and treated consistently for both format and uniqueness. Any inconsistency (e.g., stored with spaces or bypassing the duplicate check) is a defect/clarification item.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-038</id>
+            <requirement_reference>Customer Detail §5.1 validation #80; FR-08; RG-11; AS-08</requirement_reference>
+            <title>Error guessing — duplicate email differing only by letter case</title>
+            <priority>High</priority>
+            <test_design_technique>Error Guessing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). A customer with "john.doe@example.com" already exists in the current brand.</preconditions>
+            <test_data>First = "John"; Last = "Doe"; Email = "John.Doe@EXAMPLE.com" (same address, different case).</test_data>
+            <steps>Enter valid names. Enter the case-variant email. Click Save.</steps>
+            <expected_result>Behaviour is per the documented brand-uniqueness rule (#80). Case-insensitivity is unspecified (RG-11): if uniqueness is intended to be case-insensitive, Save must be blocked as a duplicate; if the case variant is accepted, record it as a potential duplicate-integrity defect and clarification item.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-039</id>
+            <requirement_reference>Customer Detail §5.1 validations #10/#20, actions #10/#20, §3.1 FormattedCellPhone; FR-09, FR-10, FR-13; RG-04; AS-08</requirement_reference>
+            <title>Error guessing — phone entered with formatting characters</title>
+            <priority>Medium</priority>
+            <test_design_technique>Error Guessing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Probes how the 10-digit-minimum rules and normalisation treat non-digit characters.</preconditions>
+            <test_data>First = "Mia"; Last = "Fox"; Email = "mia.fox@example.com"; Home Phone = "(202) 555-0100"; Mobile Phone = "202-555-0111".</test_data>
+            <steps>Enter valid mandatory fields. Enter Home and Mobile phones containing spaces, parentheses, and dashes. Click Save. Inspect stored values.</steps>
+            <expected_result>Behaviour is per the documented minimum-10-digit rules (#10/#20) and normalisation (actions #10/#20). Character-set handling is unspecified (RG-04): ideally non-digit characters are ignored so the ten digits pass and normalise to "(202) 555-0100" / "(202) 555-0111". If formatting characters cause a false rejection or corrupt storage, record it as a defect/clarification item.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-040</id>
+            <requirement_reference>Customer Detail §5.1 validation #80, action #8 (CustomerBrand Insert); FR-16, FR-08; RG-13; AS-08</requirement_reference>
+            <title>Error guessing — rapid double-click on Save does not create duplicate records</title>
+            <priority>High</priority>
+            <test_design_technique>Error Guessing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Probes the check-then-insert path for duplicate/concurrency protection.</preconditions>
+            <test_data>First = "Rex"; Last = "Lin"; Email = "rex.lin@example.com" (not yet in the brand).</test_data>
+            <steps>Enter valid mandatory fields. Double-click / rapidly click Save twice in succession. Inspect the resulting records.</steps>
+            <expected_result>Exactly one Customer and one CustomerBrand link are created for the email. Duplicate-submit handling is unspecified (RG-13); if two records or two brand links are created, record it as a defect/clarification item.</expected_result>
+        </test_case>
+
+        <test_case>
+            <id>TC-041</id>
+            <requirement_reference>Customer Detail §5.1 validations #50/#60 (name present); §2 (name fields); FR-04, FR-05; RG-10; AS-08</requirement_reference>
+            <title>Error guessing — oversized and special-character values in name fields</title>
+            <priority>Medium</priority>
+            <test_design_technique>Error Guessing</test_design_technique>
+            <preconditions>Account Creation form open in Insert mode (AS-03). Probes robustness of the name-present rules with extreme/special input.</preconditions>
+            <test_data>First = a 300-character string; Last = "O'Neil-Łukasz &lt;script&gt; 名字"; Email = "long.name@example.com".</test_data>
+            <steps>Enter an over-long First Name and a Last Name containing apostrophes, hyphens, accented/non-Latin characters, and markup-like text. Enter a valid Email. Click Save. Inspect stored values and page rendering.</steps>
+            <expected_result>Per §5.1 #50/#60 the names are non-empty, so those validations pass. As no length or character-set constraints are documented (RG-10), record the actual behaviour: input should be stored and rendered safely without truncation surprises, layout breakage, or script execution. Any data corruption, unsafe rendering, or unhandled error is a defect/clarification item.</expected_result>
+        </test_case>
+
+    </test_cases>
+
+</test_suite>

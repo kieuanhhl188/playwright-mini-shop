@@ -33,6 +33,10 @@ test.skip('shows the confirmation message after submitting', async ({ page }) =>
 // The same best practices applied to a real, runnable target (Mini Shop).
 // Submitting the login form empty triggers the app's validation error, which
 // we assert with a semantic, web-first visibility check.
+//
+// Note: this file exists to demonstrate the refactoring pattern. The empty-form
+// scenario itself is now covered properly by N-01 in tests/login.spec.ts, via
+// the LoginPage page object — treat that as the canonical test, not this one.
 test('refactored pattern applied to Mini Shop login', async ({ page }) => {
   await page.goto('/'); // Uses the configured baseURL
 
